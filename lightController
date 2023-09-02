@@ -1,0 +1,163 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+/*Put your SSID & Password*/
+const char* ssid = "Uom_Wireless";  // Enter SSID here
+const char* password = "mofz8565";  //Enter Password here
+
+ESP8266WebServer server(80);
+
+uint8_t LEDpin1 = D1;
+uint8_t LEDpin2 = D2;
+uint8_t LEDpin3 = D3;
+uint8_t LEDpin4 = D4;
+bool LEDstatus = LOW;
+String LEDpin = "";
+
+void setup() {
+  Serial.begin(9600);
+  delay(100);
+  pinMode(LEDpin1, OUTPUT);
+  pinMode(LEDpin2, OUTPUT);
+  pinMode(LEDpin3, OUTPUT);
+  pinMode(LEDpin4, OUTPUT);
+
+  Serial.println("Connecting to ");
+  Serial.println(ssid);
+
+  //connect to your local wi-fi network
+  WiFi.begin(ssid, password);
+
+  //check wi-fi is connected to wi-fi network
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(1000);
+  Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected..!");
+  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
+
+  server.on("/", handle_OnConnect);
+  server.on("/led1on", handle_oledon);
+  server.on("/led1off", handle_oledoff);
+  server.on("/led2on", handle_wledon);
+  server.on("/led2off", handle_wledoff);
+  server.on("/led3on", handle_tledon);
+  server.on("/led3off", handle_tledoff);
+  server.on("/led4on", handle_fledon);
+  server.on("/led4off", handle_fledoff);
+  server.onNotFound(handle_NotFound);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  server.handleClient();
+  if(LEDstatus && LEDpin =="1" )
+  digitalWrite(LEDpin1, HIGH);
+  if(!LEDstatus && LEDpin =="1" )
+  digitalWrite(LEDpin1, LOW);
+  if(LEDstatus && LEDpin =="2" )
+  digitalWrite(LEDpin2, HIGH);
+  if(!LEDstatus && LEDpin =="2" )
+  digitalWrite(LEDpin2, LOW);
+  if(LEDstatus && LEDpin =="3" )
+  digitalWrite(LEDpin3, HIGH);
+  if(!LEDstatus && LEDpin =="3" )
+  digitalWrite(LEDpin3, LOW);
+  if(LEDstatus && LEDpin =="4" )
+  digitalWrite(LEDpin4, HIGH);
+  if(!LEDstatus && LEDpin =="4" )
+  digitalWrite(LEDpin4, LOW);
+}
+
+void handle_OnConnect() {
+  LEDstatus = LOW;
+  server.send(200, "text/html", SendHTML(1,false));
+  server.send(200, "text/html", SendHTML(2,false));
+  server.send(200, "text/html", SendHTML(3,false));
+  server.send(200, "text/html", SendHTML(4,false));
+}
+
+void handle_oledon() {
+  LEDstatus = HIGH;
+  LEDpin = "1";
+  server.send(200, "text/html", SendHTML(1,true)); 
+}
+
+void handle_oledoff() {
+  LEDstatus = LOW;
+  LEDpin = "1";
+  server.send(200, "text/html", SendHTML(1,false)); 
+}
+void handle_wledon() {
+  LEDstatus = HIGH;
+  LEDpin = "2";
+  server.send(200, "text/html", SendHTML(2,true)); 
+}
+
+void handle_wledoff() {
+  LEDstatus = LOW;
+  LEDpin = "2";
+  server.send(200, "text/html", SendHTML(2,false)); 
+}
+void handle_tledon() {
+  LEDstatus = HIGH;
+  LEDpin = "3";
+  server.send(200, "text/html", SendHTML(3,true)); 
+}
+
+void handle_tledoff() {
+  LEDstatus = LOW;
+  LEDpin = "3";
+  server.send(200, "text/html", SendHTML(3,false)); 
+}
+void handle_fledon() {
+  LEDstatus = HIGH;
+  LEDpin = "4";
+  server.send(200, "text/html", SendHTML(4,true)); 
+}
+
+void handle_fledoff() {
+  LEDstatus = LOW;
+  LEDpin = "4";
+  server.send(200, "text/html", SendHTML(4,false)); 
+}
+
+void handle_NotFound(){
+  server.send(404, "text/plain", "Not found");
+}
+
+String SendHTML(int n ,uint8_t led){
+  String ptr = "<!DOCTYPE html>\n";
+  ptr +="<html>\n";
+  ptr +="<head>\n";
+  ptr +="<title>LED Control</title>\n";
+  ptr +="</head>\n";
+  ptr +="<body>\n";
+  ptr +="<h1>LED</h1>\n";
+  ptr +="<p>Click to switch LED on and off.</p>\n";
+  ptr +="<form method=\"get\">\n";
+
+
+  ptr +="<input type=\"button\" value=\"LED1 ON\" onclick=\"window.location.href='/led1on'\">\n";
+if(led && n==1)
+  ptr +="<input type=\"button\" value=\"LED1 OFF\" onclick=\"window.location.href='/led1off'\">\n";
+
+  ptr +="<input type=\"button\" value=\"LED2 ON\" onclick=\"window.location.href='/led2on'\">\n";
+if(led && n==2)
+  ptr +="<input type=\"button\" value=\"LED2 OFF\" onclick=\"window.location.href='/led2off'\">\n";
+
+  ptr +="<input type=\"button\" value=\"LED3ON\" onclick=\"window.location.href='/led3on'\">\n";
+if(led && n==3)
+  ptr +="<input type=\"button\" value=\"LED3 OFF\" onclick=\"window.location.href='/led3off'\">\n";
+
+  ptr +="<input type=\"button\" value=\"LED4 ON\" onclick=\"window.location.href='/led4on'\">\n";
+if(led && n==4)
+  ptr +="<input type=\"button\" value=\"LED4 OFF\" onclick=\"window.location.href='/led4off'\">\n";
+  ptr +="</form>\n";
+  ptr +="</body>\n";
+  ptr +="</html>\n";
+  return ptr;
+}
